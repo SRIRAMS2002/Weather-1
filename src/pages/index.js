@@ -1,118 +1,109 @@
-import Image from 'next/image'
-import { Inter } from 'next/font/google'
+// App.js
+import { useRef, useState } from "react";
 
-const inter = Inter({ subsets: ['latin'] })
+const Api_key = "4e9114a5484f4ef3924b15855e2461d0";
 
-export default function Home() {
+const App = () => {
+  const inputRef = useRef(null);
+  const [apiData, setApiData] = useState(null);
+  const [showWeather, setShowWeather] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const WeatherTypes = [
+    // Weather types and their corresponding icons
+    // ... (unchanged)
+  ];
+
+  const fetchWeather = async () => {
+    const URL = `https://api.openweathermap.org/data/2.5/weather?q=${inputRef.current.value}&units=metric&appid=${Api_key}`;
+    setLoading(true);
+    fetch(URL)
+      .then((res) => res.json())
+      .then((data) => {
+        setApiData(null);
+        if (data.cod === 404 || data.cod === 400) {
+          setShowWeather([
+            {
+              type: "Not Found",
+              img: "https://cdn-icons-png.flaticon.com/512/4275/4275497.png",
+            },
+          ]);
+        } else {
+          setShowWeather(
+            WeatherTypes.filter(
+              (weather) => weather.type === data.weather[0].main
+            )
+          );
+          setApiData(data);
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.log(err);
+        setLoading(false);
+      });
+  };
+
   return (
-    <main
-      className={`flex min-h-screen flex-col items-center justify-between p-24 ${inter.className}`}
-    >
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/pages/index.js</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    <div className="bg-black min-h-screen flex items-center justify-center">
+      <div className="bg-white w-96 p-4 rounded-md">
+        <div className="flex items-center justify-between">
+          <input
+            type="text"
+            ref={inputRef}
+            placeholder="Enter Your Location"
+            className="text-xl border-b p-1 border-gray-900 font-semibold uppercase flex-1"
+          />
+          <button onClick={fetchWeather}>
+           
+            <svg xmlns="http://www.w3.org/2000/svg"  alt="Search"
+              className="w-8" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          </button>
+        </div>
+        <div className={`overflow-hidden transition-height ${showWeather ? "h-[15rem]" : "h-0"}`}>
+          {loading ? (
+            <div className="flex items-center justify-center h-full">
+              <img
+                src="https://cdn-icons-png.flaticon.com/512/1477/1477009.png"
+                alt="Loading"
+                className="w-14 animate-spin"
+              />
+            </div>
+          ) : (
+            showWeather && (
+              <div className="text-center flex flex-col gap-6 mt-10">
+                {apiData && (
+                  <p className="text-xl font-semibold">
+                    {apiData?.name + "," + apiData?.sys?.country}
+                  </p>
+                )}
+                <img
+                  src={showWeather[0]?.img}
+                  alt={showWeather[0]?.type}
+                  className="w-52 mx-auto"
+                />
+                <h3 className="text-2xl font-bold text-green-800">
+                  {showWeather[0]?.type}
+                </h3>
+                {apiData && (
+                  <div className="flex items-center justify-center">
+                    <img
+                      src="https://cdn-icons-png.flaticon.com/512/7794/7794499.png"
+                      alt="Temperature"
+                      className="h-9 mt-1 text-green-200"
+                    />
+                    <h2 className="text-4xl font-extrabold text-green-600">
+                      {apiData?.main?.temp}&#176;C
+                    </h2>
+                  </div>
+                )}
+              </div>
+            )
+          )}
         </div>
       </div>
+    </div>
+  );
+};
 
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700/10 after:dark:from-sky-900 after:dark:via-[#0141ff]/40 before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Discover and deploy boilerplate example Next.js&nbsp;projects.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  )
-}
+export default App;
